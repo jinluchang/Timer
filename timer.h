@@ -271,20 +271,20 @@ class Timer {
     //
     static void display(const std::string& str = "") {
       {
-        static Timer time("Timer", false);
-        static Timer time_test("Timer-test");
-        time.start();
-        time_test.start();
-        time_test.stop();
-        time.stop();
+        static Timer timer("Timer", false);
+        static Timer timer_test("Timer-test");
+        timer.start();
+        timer_test.start();
+        timer_test.stop();
+        timer.stop();
       }
       {
-        static Timer time_noflop("Timer-noflop", false);
-        static Timer time_test("Timer-test", false);
-        time_noflop.start();
-        time_test.start();
-        time_test.stop();
-        time_noflop.stop();
+        static Timer timer_noflop("Timer-noflop", false);
+        static Timer timer_test("Timer-test", false);
+        timer_noflop.start();
+        timer_test.start();
+        timer_test.stop();
+        timer_noflop.stop();
       }
       double total_time = getTotalTime();
       std::vector<TimerInfo *> db(getTimerDatabase());
@@ -347,20 +347,20 @@ class TimerCtrl {
   static Timer timer(fname); \
   TimerCtrl timerctrl(timer, true);
 
-inline void* time_malloc(size_t size) {
-  TIMER_FLOPS("time_malloc", size);
+inline void* timer_malloc(size_t size) {
+  TIMER_FLOPS("timer_malloc", size);
   void* p = malloc(size);
   memset(p, 0, size);
   return p;
 }
 
-inline void time_free(void* ptr) {
-  TIMER("time_free");
+inline void timer_free(void* ptr) {
+  TIMER("timer_free");
   free(ptr);
 }
 
-#define malloc(x) time_malloc(x)
+#define malloc(x) timer_malloc(x)
 
-#define free(x) time_free(x)
+#define free(x) timer_free(x)
 
 #endif
