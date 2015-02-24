@@ -5,19 +5,19 @@ A simple but powerful C++ code performance measurement library which just contai
 Simple example within the timer.h file
 
 ```
-inline void* time_malloc(size_t size) {
-  TIMER_FLOPS("time_malloc", size);
+inline void* timer_malloc(size_t size) {
+  TIMER_FLOPS("timer_malloc", size);
   void* p = malloc(size);
   memset(p, 0, size);
   return p;
 }
 
-inline void time_free(void* ptr) {
-  TIMER("time_free");
+inline void timer_free(void* ptr) {
+  TIMER("timer_free");
   free(ptr);
 }
 
-#define malloc(x) time_malloc(x)
+#define malloc(x) timer_malloc(x)
 
-#define free(x) time_free(x)
+#define free(x) timer_free(x)
 ```
