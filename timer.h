@@ -135,7 +135,7 @@ class TimerInfo {
       std::string fnameCut;
       fnameCut.assign(fname, 0, 30);
       DisplayInfo("Timer", NULL == info ? "" : info,
-          "%30s :%5.1f%%%9d calls. Last %.3E secs%8.3f Gflops (%.3E per call)\n",
+          "%30s :%5.1f%%%9d calls. Last %.3E secs%8.3f Gflops (%.3E flops)\n",
           fnameCut.c_str(),
           accumulated_time / total_time * 100, call_times,
           dtime,
@@ -148,14 +148,14 @@ class TimerInfo {
       std::string fnameCut;
       fnameCut.assign(fname, 0, 30);
       DisplayInfo("Timer", NULL == info ? "" : info,
-          "%30s :%7.3f%%%9d calls. Avg %.2E(%.2E) secs%6.2f Gflops (%.2E(%.2E)flops)\n",
+          "%30s :%7.3f%%%9d calls; %.2E,%.2E secs; %.2E,%.2E flops;%6.2f Gflops\n",
           fnameCut.c_str(),
           accumulated_time / total_time * 100, call_times,
           accumulated_time / call_times,
           accumulated_time,
-          accumulated_flops / accumulated_time / 1.0E9,
           (double)accumulated_flops / (double)call_times,
-          (double)accumulated_flops);
+          (double)accumulated_flops,
+          accumulated_flops / accumulated_time / 1.0E9);
     }
     //
     void show(const char *info = NULL) {
@@ -253,6 +253,7 @@ class Timer {
     void stop(bool verbose = false) {
       stop_time = getTime();
       assert(isRunning);
+      isRunning = false;
       if (0 == flops && isUsingTotalFlops) {
         stop_flops = getTotalFlops();
       } else {
@@ -266,40 +267,37 @@ class Timer {
         info.showLast("stop ");
       }
       autodisplay(stop_time);
-      isRunning = false;
     }
     //
     static void display(const std::string& str = "") {
-      static Timer time("Timer");
-      static Timer time_noflop("Timer-noflop");
-      static Timer time_test("Timer-test");
-      time.isUsingTotalFlops = false;
-      time_noflop.isUsingTotalFlops = false;
-      time_test.isUsingTotalFlops = false;
-      time_test.start();
-      time_test.stop();
-      time.start();
-      time_test.isUsingTotalFlops = true;
-      time_test.start();
-      time_test.stop();
-      time.stop();
-      time_noflop.start();
-      time_test.isUsingTotalFlops = false;
-      time_test.start();
-      time_test.stop();
-      time_noflop.stop();
+      {
+        static Timer time("Timer", false);
+        static Timer time_test("Timer-test");
+        time.start();
+        time_test.start();
+        time_test.stop();
+        time.stop();
+      }
+      {
+        static Timer time_noflop("Timer-noflop", false);
+        static Timer time_test("Timer-test", false);
+        time_noflop.start();
+        time_test.start();
+        time_test.stop();
+        time_noflop.stop();
+      }
       double total_time = getTotalTime();
       std::vector<TimerInfo *> db(getTimerDatabase());
       std::sort(db.begin(), db.end(), compareTimeInfoP);
-      DisplayInfo("Timer", "display-start", "%s ------------ total %.4e secs -----------------------\n", str.c_str(), total_time);
+      DisplayInfo("Timer", "display-start", "%s fname : time%% number of calls; Avg,Tot secs; Avg,Tot flops; Gflops\n", str.c_str(), total_time);
       for (int i = 0; i < db.size(); i++) {
         db[i]->showAvg("display");
       }
-      DisplayInfo("Timer", "display-end  ", "%s ------------ total %.4e secs -----------------------\n", str.c_str(), total_time);
+      DisplayInfo("Timer", "display-end  ", "%s --------------------- total %.4E secs ----------------------\n", str.c_str(), total_time);
     }
     //
     static void autodisplay(const double time) {
-      static double last_time = getTime();
+      static double last_time = getStartTime();
       if (time - last_time > minimum_autodisplay_interval()) {
         last_time = time;
         display("autodisplay");
