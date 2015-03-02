@@ -17,7 +17,7 @@ inline void timer_free(void* ptr) {
   free(ptr);
 }
 
-#define malloc(x) timer_malloc(x)
+#define tmalloc(x) timer_malloc(x)
 
-#define free(x) timer_free(x)
+#define tfree(x) timer_free(x)
 ```
