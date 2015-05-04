@@ -121,7 +121,7 @@ class TimerInfo {
     long long accumulated_flops;
     int call_times;
     //
-    TimerInfo() {
+    void init() {
       fname = "Unknown";
       dtime = 0.0 / 0.0;
       accumulated_time = 0;
@@ -130,7 +130,7 @@ class TimerInfo {
       call_times = 0;
     }
     //
-    void showLast(const char *info = NULL) {
+    void showLast(const char *info = NULL) const {
       double total_time = getTotalTime();
       std::string fnameCut;
       fnameCut.assign(fname, 0, 30);
@@ -143,7 +143,7 @@ class TimerInfo {
           (double)dflops);
     }
     //
-    void showAvg(const char *info = NULL) {
+    void showAvg(const char *info = NULL) const {
       double total_time = getTotalTime();
       std::string fnameCut;
       fnameCut.assign(fname, 0, 30);
@@ -158,20 +158,19 @@ class TimerInfo {
           accumulated_flops / accumulated_time / 1.0E9);
     }
     //
-    void show(const char *info = NULL) {
+    void show(const char *info = NULL) const {
       showAvg(info);
     }
 };
 
-inline bool compareTimeInfoP(TimerInfo *p1, TimerInfo *p2) {
+inline bool compareTimeInfoP(const TimerInfo* p1, const TimerInfo* p2) {
   return p1->accumulated_time < p2->accumulated_time;
 }
 
 class Timer {
   public:
     const char *cname;
-    int index;
-    TimerInfo info;
+    int info_index;
     bool isUsingTotalFlops;
     bool isRunning;
     double start_time;
@@ -180,8 +179,8 @@ class Timer {
     long long stop_flops;
     long long flops;
     //
-    static std::vector<TimerInfo *>& getTimerDatabase() {
-      static std::vector<TimerInfo *> timerDatabase;
+    static std::vector<TimerInfo>& getTimerDatabase() {
+      static std::vector<TimerInfo> timerDatabase;
       return timerDatabase;
     }
     //
@@ -222,17 +221,29 @@ class Timer {
       isUsingTotalFlops = true;
       getStartTime();
       initializePAPI();
-      index = getTimerDatabase().size();
-      getTimerDatabase().push_back(&info);
+      info_index = -1;
       isRunning = false;
     }
     void init(const std::string& fname_str) {
-      info.fname = fname_str;
+      std::vector<TimerInfo>& tdb = getTimerDatabase();
+      for (int i = 0; i < tdb.size(); i++) {
+        if (fname_str == tdb[i].fname) {
+          info_index = i;
+          return;
+        }
+      }
+      info_index = tdb.size();
+      TimerInfo info;
+      tdb.push_back(info);
+      tdb[info_index].init();
+      tdb[info_index].fname = fname_str;
     }
     void init(const std::string& cname_str, const std::string& fname_str) {
-      info.fname = cname_str;
-      info.fname += "::";
-      info.fname += fname_str;
+      std::string fname = "";
+      fname += cname_str;
+      fname += "::";
+      fname += fname_str;
+      init(fname);
     }
     //
     void start(bool verbose = false) {
@@ -241,6 +252,7 @@ class Timer {
       } else {
         isRunning = true;
       }
+      TimerInfo& info = getTimerDatabase()[info_index];
       info.call_times++;
       if (verbose || info.call_times == 1 || info.dtime >= minimum_duration_for_show_start_info()) {
         info.showLast("start");
@@ -254,11 +266,12 @@ class Timer {
       stop_time = getTime();
       assert(isRunning);
       isRunning = false;
-      if (0 == flops && isUsingTotalFlops) {
+      if (isUsingTotalFlops) {
         stop_flops = getTotalFlops();
       } else {
         stop_flops = start_flops + flops;
       }
+      TimerInfo& info = getTimerDatabase()[info_index];
       info.dtime = stop_time - start_time;
       info.dflops = stop_flops - start_flops;
       info.accumulated_time += info.dtime;
@@ -287,7 +300,11 @@ class Timer {
         timer_noflop.stop();
       }
       double total_time = getTotalTime();
-      std::vector<TimerInfo *> db(getTimerDatabase());
+      const std::vector<TimerInfo>& tdb = getTimerDatabase();
+      std::vector<const TimerInfo*> db;
+      for (int i = 0; i < tdb.size(); i++) {
+        db.push_back(&tdb[i]);
+      }
       std::sort(db.begin(), db.end(), compareTimeInfoP);
       DisplayInfo("Timer", "display-start", "%s fname : time%% number of calls; Avg,Tot secs; Avg,Tot flops; Gflops\n", str.c_str(), total_time);
       for (int i = 0; i < db.size(); i++) {
@@ -315,6 +332,8 @@ class TimerCtrl {
     bool verbose;
     //
     TimerCtrl() {
+      ptimer = NULL;
+      verbose = false;
     }
     TimerCtrl(Timer& timer, bool verbose_ = false) {
       init(timer, verbose_);
@@ -336,19 +355,19 @@ class TimerCtrl {
   static Timer timer(fname); \
   TimerCtrl timerctrl(timer);
 
-#define TIMER_FLOPS(FNAME, FLOPS) \
-  static const char* fname = FNAME; \
-  static Timer timer(fname, false); \
-  TimerCtrl timerctrl(timer); \
-  timer.flops += FLOPS;
-
 #define TIMER_VERBOSE(FNAME) \
   static const char* fname = FNAME; \
   static Timer timer(fname); \
   TimerCtrl timerctrl(timer, true);
 
+#define TIMER_FLOPS(FNAME) \
+  static const char* fname = FNAME; \
+  static Timer timer(fname, false); \
+  TimerCtrl timerctrl(timer); \
+
 inline void* timer_malloc(size_t size) {
-  TIMER_FLOPS("timer_malloc", size);
+  TIMER_FLOPS("timer_malloc");
+  timer.flops += size;
   void* p = malloc(size);
   memset(p, 0, size);
   return p;
