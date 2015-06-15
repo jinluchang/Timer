@@ -282,7 +282,7 @@ class Timer {
       autodisplay(stop_time);
     }
     //
-    static void display(const std::string& str = "") {
+    static void test_timer_time_usage() {
       {
         static Timer timer("Timer", false);
         static Timer timer_test("Timer-test");
@@ -299,6 +299,9 @@ class Timer {
         timer_test.stop();
         timer_noflop.stop();
       }
+    }
+    //
+    static void display(const std::string& str = "") {
       double total_time = getTotalTime();
       const std::vector<TimerInfo>& tdb = getTimerDatabase();
       std::vector<const TimerInfo*> db;
