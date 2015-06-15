@@ -22,8 +22,8 @@ inline void timer_free(void* ptr) {
 #define tfree(x) timer_free(x)
 ```
 
+To show the summary
 ```
 Timer::display()
 ```
-Shows the summary.
 
