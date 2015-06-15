@@ -185,17 +185,17 @@ class Timer {
     }
     //
     static double& minimum_autodisplay_interval() {
-      static double time = 60;
+      static double time = 365 * 24 * 3600.0;
       return time;
     }
     //
     static double& minimum_duration_for_show_stop_info() {
-      static double time = 0.1;
+      static double time = 60.0;
       return time;
     }
     //
     static double& minimum_duration_for_show_start_info() {
-      static double time = 0.1;
+      static double time = 60.0;
       return time;
     }
     //
