@@ -5,11 +5,6 @@ A simple but powerful C++ code performance measurement library which just contai
 Simple example within the timer.h file
 
 ```
-Timer::display()
-```
-Shows the summary.
-
-```
 inline void* timer_malloc(size_t size) {
   TIMER_FLOPS("timer_malloc", size);
   void* p = malloc(size);
@@ -26,3 +21,9 @@ inline void timer_free(void* ptr) {
 
 #define tfree(x) timer_free(x)
 ```
+
+```
+Timer::display()
+```
+Shows the summary.
+
