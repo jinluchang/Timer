@@ -368,6 +368,11 @@ class TimerCtrl {
   static Timer timer(fname, false); \
   TimerCtrl timerctrl(timer); \
 
+#define TIMER_VERBOSE_FLOPS(FNAME) \
+  static const char* fname = FNAME; \
+  static Timer timer(fname, false); \
+  TimerCtrl timerctrl(timer, true); \
+
 inline void* timer_malloc(size_t size) {
   TIMER_FLOPS("timer_malloc");
   timer.flops += size;
