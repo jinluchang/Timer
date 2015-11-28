@@ -25,9 +25,9 @@
 #include <cstring>
 #include <cassert>
 #include <sys/time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 
 #ifdef USE_PAPI
 #include <papi.h>
@@ -72,12 +72,12 @@ inline void DisplayInfo(const char *cname, const char *fname, const char *format
   if (0 != rank) {
     return;
   }
-  const int max_len = 2048;
-  char str[max_len];
   va_list args;
   va_start(args, format);
-  vsnprintf(str, max_len, format, args);
-  printf("%s::%s : %s", cname, fname, str);
+  char* str;
+  vasprintf(&str, format, args);
+  std::printf("%s::%s : %s", cname, fname, str);
+  std::free(str);
 }
 
 inline long long getTotalFlops() {
@@ -85,7 +85,7 @@ inline long long getTotalFlops() {
 #ifdef USE_PAPI
   const int n_threads = omp_get_max_threads();
   long long flopses[n_threads];
-  memset(flopses, 0, n_threads * sizeof(long long));
+  std::memset(flopses, 0, n_threads * sizeof(long long));
 #pragma omp parallel
   {
     float rtime, ptime, mflops;
