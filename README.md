@@ -6,7 +6,8 @@ Simple example within the timer.h file
 
 ```
 inline void* timer_malloc(size_t size) {
-  TIMER_FLOPS("timer_malloc", size);
+  TIMER_FLOPS("timer_malloc");
+  timer.flops += size;
   void* p = malloc(size);
   memset(p, 0, size);
   return p;
