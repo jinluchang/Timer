@@ -1,6 +1,6 @@
 #Timer
 
-A simple but powerful C++ code performance measurement library which just contains a single header file.
+A simple but powerful C++ code performance measurement library which is contained in a single header file.
 
 Simple example within the timer.h file
 
@@ -18,9 +18,15 @@ inline void timer_free(void* ptr) {
   free(ptr);
 }
 
-#define tmalloc(x) timer_malloc(x)
+inline void tmalloc(size_t size)
+{
+  timer_malloc(size);
+}
 
-#define tfree(x) timer_free(x)
+inline void tfree(void* ptr)
+{
+  timer_free(ptr);
+}
 ```
 
 To show the summary
