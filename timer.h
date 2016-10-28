@@ -33,6 +33,10 @@
 #include <omp.h>
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #if defined USE_MPI || defined USE_QMP
 #define USE_MULTI_NODE
 #endif
@@ -104,6 +108,15 @@ inline int getRank()
   int myid;
   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
   return myid;
+#else
+  return 0;
+#endif
+}
+
+inline int getThreadNum()
+{
+#ifdef _OPENMP
+  return omp_get_thread_num();
 #else
   return 0;
 #endif
@@ -345,6 +358,7 @@ struct Timer {
   //
   void start(bool verbose = false)
   {
+    if (getThreadNum() != 0) return;
     if (isRunning) {
       return;
     } else {
@@ -362,6 +376,7 @@ struct Timer {
   //
   void stop(bool verbose = false)
   {
+    if (getThreadNum() != 0) return;
     stop_time = getTime();
     assert(isRunning);
     isRunning = false;
@@ -451,11 +466,14 @@ struct TimerCtrl
   //
   ~TimerCtrl()
   {
-    ptimer->stop(verbose);
+    if (NULL != ptimer) {
+      ptimer->stop(verbose);
+    }
   }
   //
   void init(Timer& timer, bool verbose_ = false)
   {
+    if (getThreadNum() != 0) return;
     ptimer = &timer;
     verbose = verbose_;
     ptimer->start(verbose);
