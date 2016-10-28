@@ -358,7 +358,6 @@ struct Timer {
   //
   void start(bool verbose = false)
   {
-    if (getThreadNum() != 0) return;
     if (isRunning) {
       return;
     } else {
@@ -376,7 +375,6 @@ struct Timer {
   //
   void stop(bool verbose = false)
   {
-    if (getThreadNum() != 0) return;
     stop_time = getTime();
     assert(isRunning);
     isRunning = false;
@@ -456,11 +454,11 @@ struct TimerCtrl
   //
   TimerCtrl()
   {
-    ptimer = NULL;
-    verbose = false;
+    init();
   }
   TimerCtrl(Timer& timer, bool verbose_ = false)
   {
+    init();
     init(timer, verbose_);
   }
   //
@@ -471,6 +469,11 @@ struct TimerCtrl
     }
   }
   //
+  void init()
+  {
+    ptimer = NULL;
+    verbose = false;
+  }
   void init(Timer& timer, bool verbose_ = false)
   {
     if (getThreadNum() != 0) return;
