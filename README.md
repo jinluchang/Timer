@@ -1,6 +1,6 @@
 #Timer
 
-A simple but powerful C++ code performance measurement library which is contained in a single header file.
+A simple but powerful C++ code performance measurement library which is contained in two header files.
 
 Simple example within the timer.h file
 
